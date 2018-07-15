@@ -4,7 +4,7 @@
 
       里面声明了多个方法
 
-   2. single abstract method (sam interface)
+   2. single abstract method (sam interface, Functional Interface)
 
       里面只声明了一个方法
 
