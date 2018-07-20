@@ -21,3 +21,9 @@
 
 
 Ctrl + shift + C  用来注释/取消注释
+
+ctrl + shift + O 用来快速导入包
+
+alt + 左箭头  后退一步
+
+alt + 右箭头 前进一步
