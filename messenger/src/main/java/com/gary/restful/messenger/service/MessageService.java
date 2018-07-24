@@ -1,6 +1,8 @@
 package com.gary.restful.messenger.service;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -34,15 +36,38 @@ public class MessageService {
 	
 	//真实的做法是从数据库里取数据，这里只是硬编码了这个过程，是一个stub
 	public List<Message> getAllMessages() {
-		Message m1 = new Message(1, "Hello World!", "Gary");
-		Message m2 = new Message(2, "Hello Jersey", "Gary");
-		List<Message> list = new ArrayList<>();
-		list.add(m1);
-		list.add(m2);
+//		Message m1 = new Message(1, "Hello World!", "Gary");
+//		Message m2 = new Message(2, "Hello Jersey", "Gary");
+//		List<Message> list = new ArrayList<>();
+//		list.add(m1);
+//		list.add(m2);
 //		
 //		return list;
 		
-		return new ArrayList(messages.values());
+		return new ArrayList<Message>(messages.values());
+	}
+	
+	//filter
+	public List<Message> getAllMessagesForYear(int year) {
+		List<Message> messageForYear = new ArrayList<>();
+		// 通过Calendar这个类将Date日期中的Year部分取出来用以比较
+		Calendar cal = Calendar.getInstance();
+		for (Message message : messages.values()) {
+			cal.setTime(message.getCreated());
+			if (cal.get(Calendar.YEAR) == year) {
+				messageForYear.add(message);
+			}
+		}
+		return messageForYear;
+	}
+	
+	public List<Message> getAllMessagesPaginated(int start, int size) {
+		ArrayList<Message> list = new ArrayList<>(messages.values());
+		if (start + size > list.size()) {
+			// return the empty list
+			return new ArrayList<Message>();
+		}
+		return list.subList(start, start + size);
 	}
 	
 	public Message getMessage(long id) {
