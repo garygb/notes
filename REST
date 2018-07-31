@@ -1,0 +1,162 @@
+- web services: 
+- API: 连接应用程序和那个服务器
+
+服务端日志配置：
+
+C:\Huawei\eSDK\esdk\logs\eSDK-Server.run.log
+
+eSDK服务端入口：
+
+/esdk_ivs/src/main/java/com/huawei/esdk/ivs/northcommu/cxf/professional/gen/IVSProfessionalCommon.java 
+
+客户端日志配置：
+
+log4j.properties
+
+eSDK服务：
+
+C:\Huawei\eSDK\esdk\webcontent\WEB-INF\lib
+
+C:\Huawei\eSDK\esdk\Library\bin
+
+
+
+访问eSDK服务的web界面：
+
+https://10.184.38.217:18543/esdk/services
+
+
+
+开始-> eSDK->启动服务/关闭服务/重启服务
+
+
+
+Java反编译
+
+
+
+命令行：
+
+wsimport [options] <WSDL_URL>
+
+
+
+在eclipse里打开文件所属路径：
+
+shift + alt + w 
+
+
+
+eSDK SOAP客户端向外提供eventCallBack服务，这个服务的功能是在服务端想要向客户端回传参数的时候，就可以调用这个接口，传入一个parameter，然后客户端就可以对这个回传的参数进行一些操作：
+
+    @WebService(targetNamespace = "esdk_ivs_professional_server", name = "IVSProfessional.CallBack")
+    @XmlSeeAlso({ObjectFactory.class})
+    @SOAPBinding(parameterStyle = SOAPBinding.ParameterStyle.BARE)
+    public interface IVSProfessionalCallBack {
+    
+        @WebResult(name = "eventCallBackResponse", targetNamespace = "esdk_ivs_professional_server", partName = "parameters")
+        @WebMethod(action = "esdk_ivs_professional_server.eventCallBack")
+        public EventCallBackResponse eventCallBack(
+            @WebParam(partName = "parameters", name = "eventCallBack", targetNamespace = "esdk_ivs_professional_server")
+            EventCallBack parameters
+        );
+    }
+
+我们查看一下这个参数的类型，可以看到这个类型由两部分组成：
+
+1. eventType: 表示服务器返回的事件类型
+2. eventData: 表示服务器返回事件消息的详细信息，采用xml字符串形式
+
+    public class EventCallBack {
+    
+        @XmlElement(required = true)
+        protected String eventType;
+        protected String eventData;
+    
+    	...
+        //Getter and Setter 
+    }
+
+而客户端到底该怎么对这个回传的参数进行操作，这个是可以由用户进行定制的，那么怎么进行对回传参数的定制呢？
+
+这个是通过调用IVSCallbackServiceExImpl类中的regeditCallback方法来实现的，该方法也是eSDK提供的Native接口中的其中一个：
+
+    Integer regeditCallback(String wsUrl, IVSEventCallBack ivsEventCallBack); 
+
+这个函数有两个参数：
+
+1. wsUrl 注册回调地址
+2. ivsEventCallBack 用户实现的一个实现EventCallBack接口的类,用于处理parameter参数
+
+当我调用regeditCallback函数的时候，该函数的功能是实现了当WS向客户端回传参数parameter的时候，这个参数需要被我实现的一个实现EventCallBack接口的类捕获到，系统会自动调用该接口的eventCallBack(parameters)方法（这个是在IVSProfessionalEventCallBackImpl类里面实现的），因此我只要实现这个方法，那么就能让系统按照我想做的处理parameter参数，以下我直接打印出了这个参数里的两个成员变量：
+
+    public class EventCallBackImpl implements IVSEventCallBack
+    { 
+        public void eventCallBack(EventCallBack parameters)
+        {
+        	System.out.println(parameters.getEventData());
+        	System.out.println(parameters.getEventType());
+        }
+    }
+
+因此最终对回传参数该如何处置是由调用eSDK Native接口的用户来定制的。
+
+可以看一下regeditCallback方法的实现：
+
+    	public Integer regeditCallback(String wsUrl, IVSProfessionalCallback ivsCallback) {
+    		LOGGER.info("begin to execute regeditCallback method");
+    
+    		int result = NativeConstant.REDEGIT_CALLBAK_ERRORCODE;
+    
+    		if (ivsCallback instanceof IVSEventCallBack) {
+    			result = publishServices(wsUrl, new IVSProfessionalEventCallBackImpl());
+    
+    			if (0 == result) {
+    				callbacks.put(IVSEventCallBack.class, ivsCallback);
+    			}
+    			return result;
+    		}
+    
+    		LOGGER.info("execute regeditCallback method completed");
+    		return result;
+    	}
+
+callbacks和wsUrl是两个Map：
+
+    	static Map<Class, IVSProfessionalCallback> callbacks = null;
+    
+    	static Map<String, Endpoint> services = null;
+    
+    	static {
+    		callbacks = new HashMap<Class, IVSProfessionalCallback>();
+    		services = new HashMap<String, Endpoint>();
+    
+    	}
+
+实际上注册callback做的事情就是把用户定制的这个对象和类型信息放入这个Map中：
+
+    callbacks.put(IVSEventCallBack.class, ivsCallback);
+
+注册service的过程也是一样，把回调地址和endpoint放入Map。
+
+我想通过eventCallBack服务来给客户端回传参数，那么我希望这个参数被我实现的类捕捉到，它是怎么实现的呢？
+
+通过查看 类中这个函数的具体实现，可以看到：
+
+        public EventCallBackResponse eventCallBack(
+            @WebParam(partName = "parameters", name = "eventCallBack", targetNamespace = "esdk_ivs_professional_server") EventCallBack parameters)
+        {
+            
+            IVSEventCallBack eventCallback =
+                (IVSEventCallBack)IVSCallbackServiceExImpl.callbacks.get(IVSEventCallBack.class);
+            
+            eventCallback.eventCallBack(parameters);
+            
+            return new EventCallBackResponse();
+        }
+
+这仅仅是从callbacks这个Map里面通过与压入Map相同的类型信息找到这个用户定制的对象，然后调用用户实现的eventCallBack方法。
+
+
+
+IVS_SDK_UploadDeviceImg(设备抓拍图片上传接口)
