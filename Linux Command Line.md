@@ -285,3 +285,9 @@
     使用date -s "11/20/2003 12:48:00" 设置系统时间
 
     date "+%d%h%y" 显示特定格式的时间，具体用法百度或者看man page
+
+41. grep (global regular expression print)
+
+    一行一行处理数据，
+
+42. 

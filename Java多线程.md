@@ -210,3 +210,52 @@ t2.setPriority(Thread.MAX_PRIORITY);
 ```
 
 使用`Thread.currentThread()`来引用当前的线程对象
+
+
+
+### 一个常见的错误
+
+```
+class Simple {
+    int a = 1, b = 2;
+    void synchonized to() { a = 3; b = 4;}
+    void fro() {println("a=" + a + ",b=" + b);}
+}
+```
+
+注意到对于同步方法来说，相当于：
+
+```
+ void to() {
+    synchonized(this) {
+   		a = 3; b = 4;
+	}
+ }
+```
+
+相当于：
+
+```
+lock s;
+evaluate a=3; b=4;
+unlock s;
+(s is a instance of Simple)
+```
+
+在这种情况下，如果有两个线程分别调用了to()和fro()（假设调用的是同一个对象的两个两个方法），我们可以发现即使执行了to()，该函数获取了锁，但是由于fro()函数不需要获得锁就可以进入执行，因此还是可能出现interleaving的情况。
+
+同步只在所有人都checking the lock 的情况下才管用！ 
+
+以下写法才正确：
+
+```
+class Simple {
+    int a = 1, b = 2;
+    void synchonized to() { a = 3; b = 4;}
+    void synchonized fro() {println("a=" + a + ",b=" + b);}
+}
+```
+
+即使没有synchronization，一个变量也只应该有被某个进行写入的值，也就是说，写入值的过程应该是原子的，但是Java由于效率的原因，其double的值却不是原子的，也就是说，线程1想对a写入3.14，线程2想对a写入2.78，最后写入的值可能不是3.14也不是2.78，反而是一个"out of air value"，比如说3.78. 这在一般的atomic type都不会发生（Java保证了它们的写都是原子的），但是有一个例外，那就是double（出于性能的的考虑）。
+
+因此，我们在使用double的时候，如果可能出现多个线程访问这个变量，则必须要对它声明volatile，这样才能保证不出现上述的异常情况。
