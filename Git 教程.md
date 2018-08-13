@@ -42,6 +42,21 @@
 
    (不信切换改点东西并commit，然后切换到master看看)
 
+   ```
+   $ git checkout -b dev
+   Switched to a new branch 'dev'
+   ```
+
+   git checkout命令加上-b参数表示创建并切换，相当于以下两条命令：
+
+   ```
+   $ git branch dev
+   $ git checkout dev
+   Switched to branch 'dev'
+   ```
+
+   因为创建、合并和删除分支非常快，所以Git鼓励你使用分支完成某个任务，合并后再删掉分支，这和直接在master分支上工作效果是一样的，但过程更安全。 
+
 8. 合并branch
 
    先确保你在destination branch(master)，然后输入git merge \<source branch\> 如：git merge MyBranch ，这样，就能把source branch merge到destination branch了。
@@ -69,7 +84,7 @@
 
 10. git remote
 
-   查看现在存在的远程repositories（代码仓库）
+  查看现在存在的远程repositories（代码仓库）
 
 11. git clone https://github.com/garygb/tusk.git
 
@@ -94,3 +109,19 @@
     例如：git remote add MyRepo https://github.com/garygb/tusk.git
 
     在本地添加remote repository
+
+15. git reset --hard HEAD^ 回退到上一版本 HEAD^^ 上两个版本 HEAD~100 上100个版本
+
+16. git log 查看提交历史
+
+17. git reflog 查看查看命令历史，用以确定HEAD跳到哪个版本
+
+18. git reset --hard 1094a 
+
+19. git diff readme.txt  查看没有stage的修改
+
+20. 用git diff HEAD -- readme.txt命令可以查看工作区（unstaged）和版本库里面最新版本的区别 
+
+21. git checkout -- file可以丢弃工作区的修改 
+
+22. 命令git reset HEAD <file>可以把暂存区的修改撤销掉（unstage），重新放回工作区 
