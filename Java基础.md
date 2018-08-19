@@ -1,4 +1,4 @@
-Object Cloning
+### Object Cloning
 
     public class Cloning {
     
@@ -57,7 +57,7 @@ Object Cloning
 
 
 
-IO
+### IO
 
     public class FileDemo {
     
@@ -102,7 +102,7 @@ IO
     dis = new DataInputStream(
     					new FileInputStream(f));
 
-Properties File
+### Properties File
 
 将配置写在Properties文件中。（当然还可以写在XML中）
 
@@ -167,7 +167,7 @@ dataConfig.properties文件中的内容：
     url=localhost:3306\myDb
     pass=0000
 
-Serialization
+### Serialization
 
 序列化对象，以数据格式保存：
 
@@ -186,8 +186,9 @@ Serialization
     			oos = new ObjectOutputStream(
     					new FileOutputStream(f));
     			oos.writeObject(obj);
-    			
-    			
+
+
+​    			
     			ois = new ObjectInputStream(
     					new FileInputStream(f));
     			Save obj1 = (Save) ois.readObject();
@@ -363,7 +364,7 @@ Student类：
     	}
     }
 
-javap命令
+### javap命令
 
 用来反编译.class文件，只能获得对象的结构，方法内部逻辑的实现无法获得。
 
