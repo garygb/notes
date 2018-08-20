@@ -119,3 +119,39 @@ Greeting innerClassGreeting = new Greeting() {
 };
 ```
 
+Type Inference
+
+    	public static void main(String[] args) {
+    		// 由于声明了Type为StringLengthLambda，编译器会自动做类型检查
+    		// 因此就不需要显式地在lambda表达式里面表明(String s)了，只要(s)就行（只有一个参数，括号也可以省）
+    
+    		printLambda(s -> s.length());
+    	}
+    	
+    	public static void printLambda(StringLengthLambda l) {
+    		System.out.println(l.getLength("Hello Lambda"));
+    	}
+    	
+    	interface StringLengthLambda {
+    		int getLength(String s);
+    	}
+
+为什么使用Interface来作为Type？ 最重要的元素是后向兼容。比如说你想使用库函数，并向其中传入你写的lambda表达式，那么你必须要重写库函数来实现“识别”你写的lambda表达式。使用Interface，那么之前可以接受Functional Interface的地方，你可以使用lambda表达式来进行传参。
+
+函数式接口
+
+在Java 8中，我们可以在Interface里面声明方法的实现。
+
+Functional Interface是Java 8仅仅有一个抽象方法的接口。
+
+你可以有一个接口，这个里面有三个方法，其中两个已经又了实现，只有一个没有实现，他也是Functional Interface。
+
+函数式接口是接口的一种属性，你完全可能在这个接口中新增加了一个抽象方法，使得原来是函数式接口的接口变成了非函数式接口。
+
+但是这和你创建一个接口给别人用来创建类实现这个接口不同，如果你希望把这个接口用作别人传入lambda表达式的Type的话，你是不希望别人对你的接口进行修改的，因为一旦对这个接口进行修改（比如说加入了一个新的方法），之后便无法传入Lambda表达式了。
+
+对于这种问题，我们可以使用一个注解：
+
+    @FunctionalInterface
+
+来强制编译器对这个接口的抽象方法数量进行检查。
