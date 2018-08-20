@@ -260,7 +260,7 @@ class Simple {
 
 因此，我们在使用double的时候，如果可能出现多个线程访问这个变量，则必须要对它声明volatile，这样才能保证不出现上述的异常情况。
 
-线程同步
+### 线程同步
 
     package com.gary.thread;
     

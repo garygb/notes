@@ -138,7 +138,7 @@ Type Inference
 
 为什么使用Interface来作为Type？ 最重要的元素是后向兼容。比如说你想使用库函数，并向其中传入你写的lambda表达式，那么你必须要重写库函数来实现“识别”你写的lambda表达式。使用Interface，那么之前可以接受Functional Interface的地方，你可以使用lambda表达式来进行传参。
 
-函数式接口
+### 函数式接口
 
 在Java 8中，我们可以在Interface里面声明方法的实现。
 
@@ -155,3 +155,44 @@ Functional Interface是Java 8仅仅有一个抽象方法的接口。
     @FunctionalInterface
 
 来强制编译器对这个接口的抽象方法数量进行检查。
+
+
+
+
+
+注意到我们的代码里面，创建Condition这个接口比较麻烦，我们在函数中使用的lambda表达式既没有使用到这个接口的名字，也没有用到这个接口的方法名，也就是说，我们的接口的名字和方法的名字是可以任意取的，只要其signature正确就行。
+
+于是，我们可以把这些常用的signature用一个库记录下来，然后之后只要用库中的函数接口来声明我们的lambda表达式的类型就行了。
+
+`java.util.function`包含了一些out-of-box interfaces.
+
+我们可以把这些out-of-box interface 看成是Java提供给我们的可用的基本函数类型。
+
+如：
+
+```
+interface Condition(Person) {
+    boolean test(Person p);
+}
+```
+
+这个接口，我们完全可以用库中的：
+
+https://docs.oracle.com/javase/8/docs/api/java/util/function/Predicate.html#test-T-（default 代表已经声明了函数体）
+
+```
+public interface Predicate<T> {
+	···
+	boolean	test(T t); //abstract method
+}
+```
+
+来代替。声明的时候：
+
+```
+private static void printCondintionally(List<Person> people, Predicate<Person> predicate) {
+    ...
+}
+```
+
+注意到，我们传入lambda表达式的时候，类型系统会检查他们的signature，而不会检查类名字和方法名字，所以这样是完全可以的。
