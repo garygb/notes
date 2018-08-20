@@ -259,3 +259,110 @@ class Simple {
 即使没有synchronization，一个变量也只应该有被某个进行写入的值，也就是说，写入值的过程应该是原子的，但是Java由于效率的原因，其double的值却不是原子的，也就是说，线程1想对a写入3.14，线程2想对a写入2.78，最后写入的值可能不是3.14也不是2.78，反而是一个"out of air value"，比如说3.78. 这在一般的atomic type都不会发生（Java保证了它们的写都是原子的），但是有一个例外，那就是double（出于性能的的考虑）。
 
 因此，我们在使用double的时候，如果可能出现多个线程访问这个变量，则必须要对它声明volatile，这样才能保证不出现上述的异常情况。
+
+线程同步
+
+    package com.gary.thread;
+    
+    class Q {
+    	private int num;
+    	// false-空 full-满
+    	boolean valueSet = false;
+    	
+    	// 当我们使用了wait和notify，我们需要让方法是synchronized
+    	synchronized public void put(int num) {
+    		
+    		// 如果valueSet里面已经是满的，阻塞
+    		while(valueSet) {
+    			try {
+    				wait();
+    			} catch (InterruptedException e) {
+    				e.printStackTrace();
+    			}
+    		}
+    		
+    		System.out.println("Put: " + num);
+    		this.num = num;
+    		// 放入了值,需要让valueSet变full
+    		valueSet = true;
+    		// 通知Consumer线程
+    		notify();
+    	}
+    	
+    	synchronized public void get() {
+    		// 如果valueSet里面没有放入东西，阻塞
+    		while(!valueSet) {
+    			try {
+    				wait();
+    			} catch (InterruptedException e) {
+    				e.printStackTrace();
+    			}
+    		}
+    		System.out.println("Get: " + num);
+    		// 消费掉了,需要让valueSet变空
+    		valueSet = false;
+    		// 通知producer线程
+    		notify();
+    	}
+    }
+    
+    class Producer implements Runnable {
+    
+    	Q q;
+    	
+    	public Producer(Q q) {
+    		super();
+    		this.q = q;
+    		Thread t = new Thread(this, "Producer");
+    		t.start();
+    	}
+    	
+    	@Override
+    	public void run() {
+    		int i = 0;
+    		while(true) {
+    			q.put(i++);
+    			try {
+    				// 可以看到当生产者生产得很慢的时候，消费者也只能等着
+    				Thread.sleep(5000);
+    			} catch(Exception e) {
+    				e.printStackTrace();
+    			}
+    		}
+    	}	
+    }
+    
+    class Consumer implements Runnable {
+    
+    	Q q;
+    	
+    	public Consumer(Q q) {
+    		super();
+    		this.q = q;
+    		Thread t = new Thread(this, "Consumer");
+    		t.start();
+    	}
+    	
+    	@Override
+    	public void run() {
+    		int i = 0;
+    		while(true) {
+    			q.get();
+    			try {
+    				Thread.sleep(1000);
+    			} catch(Exception e) {
+    				e.printStackTrace();
+    			}
+    		}
+    	}	
+    }
+    
+    public class InterThread {
+    	public static void main(String[] args) {
+    		Q q = new Q();
+    		new Producer(q);
+    		new Consumer(q);
+    	}
+    }
+
+
