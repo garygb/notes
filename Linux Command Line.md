@@ -286,8 +286,53 @@
 
     date "+%d%h%y" 显示特定格式的时间，具体用法百度或者看man page
 
-41. grep (global regular expression print)
+41. ifconfig
+   代表InterFace Configuration, 用来浏览和改变network interface的配置。
+   eth0 -- 以太网
+   wlan --无线局域网
+   lo --- loopback interface ，这是一个特使的接口，系统用来和自己通信
+   ifconfig <interface name>   e.g. ifconfig eth0 查看特定的网卡信息
+   ifconfig <interface name> down --> 断开连接
+   ifconfig <interface name> up --> 建立连接
+42. tar
+   代表 tape archive
+   - 创建归档文件
+     -c creating tar file
+     -v (verbose详细) 用来显示创建归档文件的过程和进度
+     -f 让你来指定一个文件名
+     e.g. tar -cvf test.tar test 用来将Test文件夹以及其中的内容创建成一个归档文件
+   - 解压一个归档文件
+     -x  --> extracting
+     e.g. tar -xvf test.tar
+   - .gz 文件，代表gzip文件（压缩文件格式）
+     -z  --> 注意 -z flag必须跟在-c之后
+     e.g. tar -czvf test.tar.gz test 创建压缩文件
+     	tar -xzvf test.tar.gz 解压文件
+43. grep
+   代表global regular expression print
+   grep本身是case sensitive的，我们可以使用-i来让它变成case insensitive.
+   grep [options] <regex> <filename>
+   e.g. grep "options" file.txt --> 查找file.txt文件里面所有含有“options”的地方
+   	grep -i "options" file.txt ->不考虑大小写的问题 
+   	grep -n "options" file.txt -> n参数用来表示输出行号
+   	grep -n "options" file.txt  file2.txt file3.txt 用来查找多个文件中的内容
+   	grep -n "options" * 查找这个文件夹中的所有文件
+   	grep -v "options" file.txt --> invert match 找到所有不含options的行
+   	grep -h 查看帮助
+44. netstat
+   代表 network statistics，是一个用来显示network connections, routing tables, network interfaces。
+   -a 列出所有当前的连接 
+   -t 只看tcp连接
+   -u 只看udp连接
+   
+   管道符号，是unix一个很强大的功能,符号为一条竖线:"|"。
+   用法: command 1 | command 2 他的功能是把第一个命令command 1执行的结果作为command 2的输入传给command 2，例如:
+   $ls -s|sort -nr (请注意不要复制$符号进去哦)
+   -s 是file size，-n是numeric-sort，-r是reverse，反转
+   该命令列出当前目录中的文档(含size)，并把输出送给sort命令作为输入，sort命令按数字递减的顺序把ls的输出排序。
+   $ls -s|sort -n
+   按从小到大的顺序输出。
+   当然还可进行多次操作，如下面的功能为先去除纯数字，再由sed将竖线(这里不是管道符号)替换为空格，再将结果取出来排序，再进行结果的选择显示，不明白可查看 排序和分页。
+   cat filename |grep -v '^[0-9]*$' | sed 's/|/ /g' |sort -nrk 8 -nrk 9 |tail -n +1 |head -n 10
+   
 
-    一行一行处理数据，
-
-42. 
