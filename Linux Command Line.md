@@ -1,4 +1,5 @@
-###一. Linux命令行
+# Linux命令行
+
 
 使用Ctrl+Alt+T进入Terminal。
 
