@@ -397,7 +397,7 @@ Student类：
       static {};
     }
 
-使用Reflection API调用私有方法
+### 使用Reflection API调用私有方法
 
     public class ReflectionDemo {
     
@@ -531,4 +531,188 @@ alt + 左箭头  后退一步
 alt + 右箭头 前进一步
 
 ctrl + shift + T 查找类
+
+### 压缩文件
+
+```
+	private void compress(File source, File destination) throws IOException {
+		byte[] buffer = new byte[1024];
+		FileInputStream fis = new FileInputStream(source);
+		FileOutputStream fos = new FileOutputStream(destination);
+		GZIPOutputStream gzos = new GZIPOutputStream(fos);
+		int read;
+		while ((read = fis.read(buffer)) != -1) {
+			gzos.write(buffer, 0, read);
+		}
+		gzos.finish();
+		gzos.close();
+		fis.close();
+		fos.close();
+	}
+```
+
+### 通过使用System类的currentTimeMillis()方法记录程序运行的时间
+
+```
+		// millis from Jan 1st 1970
+		long start = System.currentTimeMillis();
+		ArrayList<Integer> a = new ArrayList<>();
+		for (int i = 0; i < 10000000; i++) {
+			a.add(i);
+		}
+		long end = System.currentTimeMillis();
+		System.out.println(end - start + "ms");
+```
+
+
+
+### 国际化
+
+```
+public class LocaleDemo {
+
+	public static void main(String[] args) {
+		// L10N -> Localization (为什么是10：字母L到字母N之间刚好有10个字母)
+		// I18N -> Internationalization (18:同理)
+		
+		// Locale
+		// ResourceBundle -> both are belonging to: java.util
+//		String language = "en";
+//		String country = "US";
+		
+//		String language = "ge";
+//		String country = "GE";
+		
+		// language and country can be user input
+		String language = "hi";
+		String country = "IND";
+		
+		Locale l = new Locale(language, country);
+		
+		// 1st argument --> properties file name(项目的相对路径名)
+		// 2nd argument --> Locale
+		// 由于我们在参数中指定了locale，函数会自动抓取其language和country，然后append到
+		// bundle的后面，所以这样就会获得Bundle_ge_GE.properties文件里的键值对
+		ResourceBundle r = ResourceBundle.getBundle("bundle", l);
+		
+		// fetch the key from .properties file
+		String str = r.getString("wish");
+		
+		System.out.println(str);
+	}
+
+}
+```
+
+Bundle_ge_GE.properties
+
+```
+wish=Gute Zum Geburtstag
+```
+
+Bundle_hi_IND.properties
+
+```
+wish=aa
+```
+
+bundle.properties
+
+```
+wish=Happy Birthday
+```
+
+
+
+### 枚举类型
+
+Java中的常量：
+
+1. 在enum(Java 1.5)出现之前：
+
+   在接口里面定义：
+
+```
+interface MobileCompany {
+    static final String APPLE = "Apple";
+    static final String SAMSUNG = "Samsung";
+    static final String HUAWEI = "HuaWei";
+}
+```
+
+1. 使用enum
+
+```
+enum Mobile {
+	// 最后的分号可以不加，但习惯上会加
+	APPLE, SAMSUNG, HTC;
+}
+```
+
+实际上，编译器会把上述的枚举类转换为：
+
+```
+class Mobile {
+	static final Mobile APPLE = new Mobile();
+	static final Mobile SAMSUNG = new Mobile();
+	static final Mobile HTC = new Mobile();
+}
+```
+
+每个enum会被编译器转换为一个该枚举类名所对应类的对象，而且是static final的。
+
+由于enum实际上就是一个类，那么我们可以对类定义的变量（方法），我们都可以对enum实现。（这点和C/C++不同，在C和C++里面，我们不能在枚举类型里面加入变量和方法）
+
+如下：
+
+```
+enum Mobile {
+	// 最后的分号可以不加，但习惯上会加
+	APPLE, SAMSUNG, HTC;
+	
+	// 可以在enum里面定义成员变量和成员函数
+	int price;
+	public int getPrice() {
+		return price;
+	}
+}
+```
+
+使用getPrice方法：
+
+```
+System.out.println(Mobile.APPLE.getPrice());
+```
+
+调用：
+
+```
+public class EnumExample {
+
+	public static void main(String[] args) {
+
+		System.out.println(MobileCompany.APPLE);
+		
+		System.out.println(Mobile.APPLE);
+	}
+
+}
+
+```
+
+这个enum类当然也可以直接定义在EnumExample类里面，不能定义在方法里面。
+
+在使用枚举之前，switch语句只支持int,byte,short,long这些。在加入enum之后，switch语句也支持枚举类型的指派：
+
+```
+		switch(m) {
+		case APPLE:
+			System.out.println("Apple is best");
+			break;
+		case SAMSUNG:
+			System.out.println("1st copy of Apple");
+			break;
+		}
+
+```
 
