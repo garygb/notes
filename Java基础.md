@@ -716,3 +716,136 @@ public class EnumExample {
 
 ```
 
+### 注解
+
+创建自己的注解（注释这个类为一个SmartPhone）：
+
+```
+@SmartPhone
+class NokiaASeries {
+	
+}
+
+```
+
+为了让这个注解有效，我们需要创建这个注解：
+
+当一个注解里面没有任何值的话，这个注解叫做Marker Annotation.
+
+```
+// Marker Annotation
+public @interface SmartPhone {
+
+}
+
+```
+
+Single Value Annotation:
+
+```
+// Single Value Annotation
+public @interface SmartPhone {
+	String os();
+}
+
+```
+
+Multi Value Annotation:
+
+```
+// Multi Value Annotation
+public @interface SmartPhone {
+	String os();
+	int version();
+}
+
+```
+
+当你使用注解的时候：
+
+```
+@SmartPhone(os="Android", version=6)
+class NokiaASeries {
+	
+}
+
+```
+
+当你按照上面的Multi Value Annotation的格式来定义注解类的话，使用的时候一定要定义属性(Attribute)。
+
+当然你也可以在注解类里面使用default value：
+
+```
+public @interface SmartPhone {
+	String os() default "Symbian";
+	int version() default 1;
+}
+
+```
+
+这样你既可以使用不带属性的方式声明注解，也可以使用带属性的方式来声明注解，声明的属性将会覆盖默认值。
+
+### 使用反射获得这个类的注解值
+
+在使用注解前，我们需要为注解加上有效期(使用@Retention注解，只有加上RUNTIME,这个注解才会在运行时有效。
+
+然后可以声明一下这个注解到底是应用在什么entity上，是class? method? parameter? field? 等等。
+
+```
+// 使用在注解类上的注解叫做元注解
+
+// 需要声明在哪个level使用这个注解(是class level, method level还是field level)
+// ElementType.TYPE代表使用在class前
+@Target(ElementType.TYPE)
+// 在什么时候使用这个注解(有效期)
+// SOURCE -- 只有在source的时候有效，在编译好的文件中就不起作用了
+// CLASS
+// RUNTIME
+@Retention(RetentionPolicy.RUNTIME)
+public @interface SmartPhone {
+	String os() default "Symbian";
+	int version() default 1;
+}
+
+```
+
+使用这个注解来标明NokiaASeries是一个SmartPhone，在main函数中查看NokiaASeries类注解的属性：
+
+```
+@SmartPhone
+class NokiaASeries {
+	String model;
+	int size;
+	
+	public NokiaASeries(String model, int size) {
+		super();
+		this.model = model;
+		this.size = size;
+	}
+
+}
+
+public class AnnotationDemo {
+
+	public static void main(String[] args) {
+		NokiaASeries obj = new NokiaASeries("Fire", 5);
+		
+		// 使用反射来获取注解的值
+		Class c = obj.getClass();
+		// 由于一个类可以拥有多个注解，所以需要声明是哪个注解
+		Annotation an = c.getAnnotation(SmartPhone.class);
+		SmartPhone s = (SmartPhone)an;
+		System.out.println(s.os());
+	}
+
+}
+```
+
+可以使用：
+
+```
+@Inherited
+
+```
+
+这个元注解来标明一旦这个注解使用在某个类上，那么这个类的所有子类都自动继承这个注解。
