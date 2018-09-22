@@ -282,7 +282,8 @@ public class AddServlet extends HttpServlet {
 
 1. hello.jsp对应的Servlet类名为hello_jsp。
 2. 所有写在scriptlet里面的代码都会被映射到对应的Servlet里面的service方法里。
-3. 
+
+   
 
 ###Builtin Object in JSP
 
@@ -351,3 +352,31 @@ public class AddServlet extends HttpServlet {
 <%= exception.getMessage() %>
 ```
 
+
+
+### Login&Logout
+
+登录的时候使用：
+
+```
+session.setAttribute("uname","Gary");
+```
+
+来设置session。
+
+使用session来保持需要登录的页面确实是用户登录过的。
+
+```
+if (session.getAttribute("uname") == null) {
+    response.sendRedirect("login.jsp");
+}
+```
+
+登出的时候，使用：
+
+```
+session.removeAttribute("uname");
+response.sendRedirect("login.jsp"); // redirect to login page
+```
+
+但是这样有一个安全漏洞，当你完成logout的时候，如果你点击后退按钮，它会退到之前登录的鉴权后的页面去。
