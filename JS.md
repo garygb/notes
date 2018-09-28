@@ -302,3 +302,365 @@ console.log("Accessing using square bracket notation: " + myObj["prop"]);//注�
 -  当你使用[] 的时候，它减小了engine优化的可能性，当使用. 的时候，engine事先知道我要访问对象里面的哪个属性，因此可以做一些优化。但是尽量还是使用dot notation.
 
 - Dot and [] notation can be interchanged.
+
+### 对象中可以内嵌别的对象
+
+如下：
+
+```js
+var myObj = {
+	"prop" : "Hello",
+	"prop2" : 123,
+	"prop3" : false,
+	"innerObj" : {"innnerProp" : "This is a inner proprty value."}
+}
+```
+
+可以使用：
+
+```js
+myObj.innerObj.innerProp；
+// or
+myObj.innnerObj["innnerProp"]；
+```
+
+来访问它。
+
+### JavaScript的对象机制类似于Java，是变量存放着对象的内存地址
+
+```js
+var myObj1 = {
+  "myProp" : "hello"
+}
+var myObj2 = myObj1; //让myObj2"指向"与对象myObj1相同的地址
+
+myObj2.myProp = "modified";
+
+console.log(myObj1.myProp);  // 打印出modified
+```
+
+###判等
+
+```js
+var myObj1 = {
+  "myProp" : "hello"
+}
+var myObj2 = myObj1;
+
+myObj2.myProp = "modified";
+myObj3 = {
+   "myProp" : "hello"
+}
+console.log(myObj1 === myObj2); // true, 指向了同一个对象
+console.log(myObj1 === myObj3); // false, 指向了不同对象，尽管值相等还是false
+```
+
+### Undefined vs. Null for Objects
+
+```js
+var person = {
+    'firstName': 'Huang',
+    'lastName' : 'Guobin'
+}
+```
+
+当你使用：
+
+```js
+person.middleName; // undefined
+```
+
+当你想要显式地设置你没有某个属性的时候：
+
+```js
+var person = {
+    'firstName': 'Huang',
+    'middleName' : null;
+    'lastName' : 'Guobin'
+}
+```
+
+此时调用：
+
+```js
+person.middleName; // null
+```
+
+这样显式地告诉了调用者你不是没有设置这个属性，而是你本身就没有middle name.
+
+### 删除属性
+
+第一种办法（错误的方法）
+
+```js
+var person = {
+    'firstName': 'Huang',
+    'lastName' : 'Guobin',
+    'age' : 20
+}
+...
+person.age = undefined; 
+...
+console.log(person.age); // undefined
+```
+
+以上的做法看起来好像和直接删除了age属性是一样的，但是当你查看person对象的时候就会发现：
+
+```js
+Object { firstName: "Huang", lastName: "Guobin", age: undefined }
+```
+
+打印出的对象里面依然有age这个属性，只是其值设置为了undefined,并没有直接把他删除掉。
+
+更好的办法是：
+
+```js
+delete person.age;
+...
+person.age; // undefined, 输出person也会发现age属性消失了
+```
+
+### 数组
+
+```js
+var arr = [1, 2, 3]; // defined in line
+arr[0]; // access the element
+arr[3]; //当你访问out of bound的数组元素的时候，会返回 undefined
+```
+
+类似于对象，数组也可以动态加入和删除元素。
+
+```js
+arr[3] = "hello";
+```
+
+事实是，所有的JavaScript数组本质上是一个JavaScript对象。只不过数组可能有一些特殊的属性在里面。
+
+查看这个数组的内容：
+
+```js
+(4) […]
+0: 1
+1: 2
+2: 3
+3: "hello"
+length: 4
+__proto__: Array []
+```
+
+可以看见，数组就是一个对象，这个对象的每个属性名字就是数组的index，值就是数组在那个index的value。相比起对象，数组中自动加入了一个属性:length.
+
+可以使用访问对象的方式来访问数组：
+
+```js
+arr["0"]; // 与arr[0]等价，由于属性名是数字，因此不能使用.来访问
+```
+
+但为什么使用`arr[0]`可以访问？
+
+原因是解释器将数字0自动类型转换为了字符串。（实际上对于对象，也可以发生这种转换）
+
+如下：
+
+```
+var obj = {"0": 1};
+...
+obj[0]; // 返回1 
+```
+
+访问数组的长度：
+
+```js
+arr.length;
+```
+
+使用一个新的变量指向这个数组：
+
+```js
+var arr2 = arr;
+```
+
+你可以随意添加index：
+
+```
+arr[10] = 1;
+```
+
+查看数组的结构：
+
+```js
+(11) […]
+0: 1
+1: 2
+2: 3
+10: 1
+length: 11
+__proto__: Array []
+```
+
+可以看到数组的长度属性记录的不是数组中实际元素的个数，而是数组最后一个元素的索引加1.
+
+你可以设置非数字的属性：
+
+```
+arr["foo"] = "abc";
+```
+
+查看数组结构：
+
+```js
+(11) […]
+0: 1
+1: 2
+2: 3
+10: 1
+foo: "abc"
+length: 11
+__proto__: Array []
+```
+
+长度还是不变（最大的索引决定）。
+
+### 包裹对象(Wrapper Objects)
+
+我们知道string是一个基本类型，但是我们可以使用`s.length`来获得字符串的长度，实际上发生的事情是：string这个基本类型会被自动转换为对应的等价对象，然后那个对象里面有个属性是length。
+
+但当你随后查看`typeof s`的时候，你会发现还是一个string类型，这是因为等价对象是临时创建的，并不会将这个对象赋值给s, 当我们使用完了length之后，这个对象立即就被消除了。
+
+四种有包裹对象的基本类型：String, boolean, number, symbol.
+
+### 函数
+
+Functions are also Objects.
+
+js的函数参数是很flexible的，你如果提供的少了，他会把未提供的默认为undefined(注意在C++和Java中，这是无法通过编译的)，如果提供的多了，JavaScript会直接忽略掉这些多出来的参数。
+
+```js
+function sayHello(name, timeOfDay) {
+    console.log("Hello " + name + 
+               ", Time of day is " + timeofDay);
+}
+
+sayHello("Gary"); // Hello Gary, Time of day is undefined
+sayHello("Gary", "afternoon", "ignored"); // won't be an error
+```
+
+因此，函数重载是无法在JS中实现的（同名的函数有不同的参数，你调用的参数类型和个数决定了真正执行的函数是哪个）。
+
+### 返回值
+
+由于是弱类型的，所以没有返回值类型在函数的声明里面。
+
+我们可以直接使用return;
+
+```js
+function sayHello() {
+    console.log("Hello");
+    return;
+}
+var result = sayHello(); // 此时并没有返回值赋给result，因此result为undefined
+```
+
+### 函数表达式
+
+在JavaScript中，function is first class object.
+
+``` js
+var f = function fun() {  // This is called a function expression
+    console.log("hello");
+}
+f(); //找到这个变量绑定的函数，然后执行
+```
+
+由于我们完全没有用过fun这个名字，我们将这个函数赋给了一个变量，之后我们就通过这个变量名来引用了，于是我们可以将原来的函数改写为：
+
+```js
+var f = function () {  // This is called a function expression
+    console.log("hello");
+}
+```
+
+这叫做你们函数表达式(Anonymous Function Expression).
+
+此时当你对f赋予别的值的时候(e.g. `f = 1; f(); //error`)，原来这个函数表达式的信息就消失了。
+
+###Functions as arguments
+
+```js
+var executor = function (fn) {
+    fn();
+}
+
+executor(f); // passing the function var as argument
+```
+
+### this关键字
+
+在Java中，一个类里面有成员变量和成员函数，在JS里面，函数和变量都可以是property。
+
+在函数成员中，直接使用变量名来访问属性是不够健壮的(fragile code)，如下情况：
+
+```js
+var person = {
+    "firstName": "Huang",
+    "lastName": "Guobin",
+    "getFullName": function() {
+        return person.firstName + " " + person.lastName;
+    }
+}
+
+var person2 = person;
+person = {};
+console.log(person2.getFullName()); // 这会输出"undefined undefined"
+```
+
+可以看到实际上变量就是一个指向内存某个区域的指针，在这里我将原来的person交给了新的变量来管理，并将原来的person指向了新的内容，此时在调用getFullName，可以发现由于函数内部我硬编码了firstName和lastName这两个属性绑定的对象，因此我在修改了这些属性所属的对象之后，函数就不工作了。
+
+因此我需要使用this这个关键字, 它代表了这个函数成员所属的对象，即使在将内容交给不同的对象后，这个函数依然能执行：
+
+```js 
+var person = {
+    "firstName": "Huang",
+    "lastName": "Guobin",
+    "getFullName": function() {
+        return this.firstName + " " + this.lastName;
+    }
+}
+
+var person2 = person;
+person = {};
+console.log(person2.getFullName()); // 这会输出"Huang Guobin"
+```
+
+###Implicit Arguments
+
+每个JavaScript的函数都有一个默认的参数arguments.(另一个implicit argument是this)
+
+这个arguments**类似**一个array，保存了所有的入参的值：
+
+（注意：传入的这个arguments并不是一个array，它实际上是一个Object，除了索引外，有些可以对array使用的方法不能使用到arguments上）
+
+``` js
+var add = function(a, b) {
+    var i, sum=0;
+    for (i = 0; i < arguments.length; i++) {
+        sum += arguments[i]; // 可以像数组一样使用这个参数
+    }
+   	return sum;
+}
+
+console.log(add(1,2,3,4,5)); // return 15
+```
+
+###Summary: JavaScript Functions
+
+1. Functions can be written in literal form
+2. A function is a "value" that can be assiged to a variable
+3. Can be called by passing in arguments
+4. Functions are objects!
+5. Flexible argument count
+6. No function overloading
+7. Default arguments
+8. The **arguments** argument
+9. Function Declaration vs. Function Expression vs. Anonymous Function Expression
+10. Functions as object property

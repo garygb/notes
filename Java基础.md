@@ -849,3 +849,55 @@ public class AnnotationDemo {
 ```
 
 这个元注解来标明一旦这个注解使用在某个类上，那么这个类的所有子类都自动继承这个注解。
+
+### 可变参数长度的函数的使用
+
+1.  可变长参数的定义
+
+ **使用...表示可变长参数**，例如
+
+```java
+print(String... args){
+   ...
+}
+```
+
+在具有可变长参数的方法中可以把参数当成数组使用，例如可以循环输出所有的参数值。
+
+```java
+print(String... args){
+   for(String temp:args)
+      System.out.println(temp);
+}
+```
+
+2. 可变长参数的方法的调用
+
+调用的时候可以给出任意多个参数也可不给参数，例如：
+
+```
+print();
+print("hello");
+print("hello","lisi");
+print("hello","张三", "alexia");
+```
+
+以下是一个例子：
+
+```
+public class Main {
+	public static int fn(int... i) {
+		int res = 0;
+		for (int val : i) {
+			res += val;
+		}
+		return res;
+	}
+	public static void main(String[] args) {
+
+		System.out.println(fn(1)); // 1
+		System.out.println(fn(1,2,3,4)); // 10
+	}
+}
+```
+
