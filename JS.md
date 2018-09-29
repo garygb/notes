@@ -664,3 +664,50 @@ console.log(add(1,2,3,4,5)); // return 15
 8. The **arguments** argument
 9. Function Declaration vs. Function Expression vs. Anonymous Function Expression
 10. Functions as object property
+
+## Unit 5 Wrapping up
+
+### Array提供的方法
+
+1. push(xxx) 从最后插入
+2. pop() 弹出最后一个元素
+3. shift() 取出第一个元素 
+4. unshift(xx) 将这个元素插入到数组的第一个位置
+
+### Array的forEach方法
+
+在调用forEach方法的时候，当你传入一个函数变量，forEach会自动为你传入一些参数：
+
+1. item: 这个数组遍历到的元素
+2. index: 这个元素的index
+3. array: 这个数组本身
+
+``` js
+myArray.forEach(function(item, index, array) {
+   console.log(item, index，array);
+});
+```
+
+如下是一个调用的例子：
+
+``` js 
+var myArray = [10, 20, "hello"];
+var myFunction = function(item) {
+  console.log(item);
+};
+
+myArray.forEach(myFunction);
+```
+
+### 常用的内置对象
+
+1. Math对象： 提供了一些数学方法的调用
+2. Date对象：提供了一些关于时间的方法
+
+### Next Steps
+
+- Scopes and clousures
+- Objects and Prototypes
+- Asynchronous JavaScript - Callbacks and Promises
+- Client side frameworks
+- Server side frameworks
