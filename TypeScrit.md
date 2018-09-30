@@ -34,6 +34,21 @@ c = 'hello';
 
 注意typescript的类型定义是后缀定义，这与Java中的前缀定义还是有区别的。
 
+### 定义数组类型
 
+```typescript
+var myArr: number[];  // array of type number
+myArr = []; // ok
+myArr = [1,2,3,4]; // ok
+myArr = [1,true]; // compliation error!
+```
 
-TODO： TS basics  tutorial 7
+但是使用了类型定义的数组之后，有时候我们仍然要使用可以放各种类型元素的数组，这个时候我们就需要使用**tuple**：
+
+```typescript
+var myArr: [number, boolean]; // for tuple declarations, the data types are specified like elements inside the  []
+myArr = [1, true]; // ok
+myArr = [100, false]; // ok
+myArr = [2]; // Error! The array must have the same size as you declared!
+```
+

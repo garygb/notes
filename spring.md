@@ -1,4 +1,4 @@
-# spring
+# Spring IOC
 
 #### 创建一个Maven工程
 
@@ -308,7 +308,9 @@ public class Car implements Vehicle {
 
 其中Car这个里面有一个私有的对象Tyre，使用了自动装配注解则会在这个类被实例化的时候也实例化这个对象，具体方法根据声明就是找到这个类，然后使用XML里面定义的property标签进行初始化。
 
-###AOP（Aspect Oriented Programming）
+#Spring AOP
+
+（Aspect Oriented Programming）
 
 1. Write Aspect
 2. Configure where the aspects apply
