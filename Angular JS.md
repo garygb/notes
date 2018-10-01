@@ -58,3 +58,44 @@ ng generate component hello-world
 
 ![](/img/1.gif)
 
+我们可以在`app.component.html`中(app是root component)加入：
+
+``` html
+<h1>Hello</h1>
+<app-hello-world></app-hello-world>
+```
+
+从而将新建的component加入到root element中。
+
+注意到每个模块都有一个selector，在.component.ts中定义的,如以下是hello-world这个component的TypeScript脚本，其中selector的值刚好对应到`<app-hello-world></app-hello-world>`：
+
+```typescript
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-hello-world',
+  templateUrl: './hello-world.component.html',
+  styleUrls: ['./hello-world.component.css']
+})
+export class HelloWorldComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit() {
+  }
+
+}
+```
+
+可以重复加入：
+
+``` html
+<h1>Hello</h1>
+<app-hello-world></app-hello-world>
+<app-hello-world></app-hello-world>
+```
+
+以上代码的component树为：
+
+![](/img/3.gif)
+
