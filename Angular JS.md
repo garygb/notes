@@ -56,7 +56,7 @@ ng generate component hello-world
 
 ![](/img/2.gif)
 
-![](/img/1.gif)
+![](/img/1.GIF)
 
 我们可以在`app.component.html`中(app是root component)加入：
 
@@ -97,5 +97,5 @@ export class HelloWorldComponent implements OnInit {
 
 以上代码的component树为：
 
-![](/img/3.gif)
+![](/img/3.GIF)
 
