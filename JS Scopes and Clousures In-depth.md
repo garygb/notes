@@ -223,3 +223,195 @@ innerFn(); // 在外部调用这个函数对象(照样会正常输出10和20)
 在外部调用这个函数对象innerFn的时候，照样会正常输出a和b的值，尽管这时候已经离开的b的作用域。**因为当一个函数被创建的时候，它还会记住创建这个函数时候的所有scope information。**(即使这个返回的对象交给了另外一个文件，那个文件里面甚至没有这个全局的a,函数也能正常执行)
 
 The function has the snapshot of the scope chain. It knows each variable it needs to point to.（记录下了所有这些需要变量的位置）
+
+以上就是Closure这个概念的一个实例。
+
+###Closure的定义
+
+**A function which remember its scope. Even if is being executed in a different scope from where its declared.**
+
+注意：在每次执行函数outer的时候，函数都会创建一个独自的b出来。
+
+如下：
+
+```js
+var a = 10;
+
+function outer() {
+    var b = 20;
+    
+    var innner = function() {
+        a++;
+        b++;
+        console.log(a);
+        console.log(b);
+    } 
+    return inner; // 返回这个内部创建的函数对象
+}
+
+var innerFn = outer(); // a只有一份，b有两份，每次执行了函数outer()都会创建一份
+innerFn(); // 输出11,21
+
+var innerFn2 = outer();
+innerFn2(); // 输出12,21
+```
+
+### Closures In Callbacks
+
+注意JS是一个单线程的语言，没有wait这种函数，我们可以使用setTimeout函数，来实现在指定时间长之后执行某个特定的函数：
+
+注意最后的`console.log("Done");`会立即执行，不需要等待1秒钟之后。
+
+```js
+var a = 10;
+var fn = function() {
+  console.log(a);
+};
+
+// wait for 1 sec and execute fn
+setTimeout(fn, 1000);
+
+// Print first
+console.log("Done");
+```
+
+注意在这里，setTimeout中内部的代码回调了这个fn这个函数，但是在调用的地方，可能是另外一个文件中，scope中并没有包含`a`的定义，但当函数一秒钟后，依然正确地打印出了`a`变量的值。
+
+这是closure的又一个应用，当fn被赋为一个函数变量的时候，这个函数对应的作用域中的所有变量的快照被记录下来，如上述的例子，被赋予`a`的除了函数的代码段，还有作用域（之中包含了a=10这个信息）。
+
+###使用Closure来阻止直接访问对象中的数据（而通过getter和setter来访问）——The Module Pattern
+
+注意到JS是没有访问限制符的，因此不能完成类似于C++和Java中的封装的功能（封装数据，向外提供API）。
+
+```js
+var person = {
+    "firstName": "Huang",
+    "lastName": "Guobin",
+    "getFirstName": function() {
+        return this.firstName;
+    },
+    "getLastName": function() {
+        return this.lastName;
+    }
+};
+
+console.log(person.firstName); // OK, print "Huang"
+console.log(person.getFirstName()); // OK, print "Huang"
+```
+
+以上的做法并不能保证阻止直接访问firstName和lastName。
+
+由于我们需要使用closure，而closure只能在函数中才能体现，我们想办法把这个对象放进函数中：
+
+```js
+function createPerson() {
+    var returnObj = {
+        "firstName": "Huang",
+        "lastName": "Guobin",
+        "getFirstName": function() {
+            return this.firstName;
+        },
+        "getLastName": function() {
+            return this.lastName;
+        }
+    };
+    return returnObj;
+}
+
+var person = createPerson(); // 通过函数来创建这个对象
+console.log(person.firstName); // OK, print "Huang"
+console.log(person.getFirstName()); // OK, print "Huang"
+```
+
+但是此时我们还是可以直接访问函数创建出来的对象的数据属性。
+
+如下的做法可以保证我们在创建的对象中不含有数据属性（因此也在外部无法访问这些数据），但是在调用getter和setter的时候，依然能访问到这些数据。
+
+这些属性就记录在返回的对象中的各个getter和setter函数的作用域中：
+
+（因为在这些函数被创建的时候，他们的作用域中就已经有了firstName和lastName）
+
+```js
+function createPerson() {
+    // attention: every variable declared in a function get created everytime the function is called
+    var firstName = "Huang";
+    var lastName = "Guobin";
+    
+    var returnObj = {
+        "getFirstName": function() {
+            return firstName;
+        },
+        "getLastName": function() {
+            return lastName;
+        },
+        "setFirstName": function(name) {
+            firstName = name;
+        },
+        "setLastName": function(name) {
+            lastName = name;
+        }
+    };
+    return returnObj;
+}
+
+var person = createPerson(); // 通过函数来创建这个对象
+console.log(person.firstName); // undefined
+console.log(person.getFirstName()); // OK, print "Huang"
+console.log(person.setFirstName("Hu")); // OK
+console.log(person.getFirstName()); // OK, print "Hu"
+```
+
+**总体思想**:
+
+不要将数据放在对象里面，因为JS没有private这样的访问限定符；但是可以将数据放在scope中（closure varibales），此时函数变量是唯一的能访问这些变量的途径。
+
+### Closures In Async Callbacks
+
+考虑以下代码：
+
+```js
+var i;
+var print = function() {
+    console.log(i);
+}
+
+for (i = 0; i < 10; i++) {
+    print(); // 输出0到9
+}
+
+for (i = 0; i < 10; i++) {
+    setTimeout(print, 1000); // 输出10个10
+}
+```
+
+之所以后以一个循环会输出10个10的原因是：循环在一开始就结束了，但是print需要在1秒后再被回调，此时i的值早已经是10了。
+
+如果我确实希望在1秒后依次输出0到9：
+
+我们知道若想要在10秒之后输出不同的值，使用同一个i肯定是不行了，需要在每次调用的时候，都有一个变量保寸当前的i值(这个变量就是下面表示的currentValueofI，由于需要记录这个变量，需要有个函数，这里使用了IIFE的形式)：
+
+``` js
+int i;
+for (i = 0; i < 10; i++) {
+    (function() {
+        var currentValueOfI = i; // 记录下当前的i值
+        setTimeout(function() {
+            console.log(currentValueOfI); // 传入这个closure variable
+        }, 1000);
+    })();
+}
+```
+
+或者另一种写法(直接传入i，这个也是closure variable)：
+
+```js
+int i;
+for (i = 0; i < 10; i++) {
+    (function(currentValueOfI) {
+        setTimeout(function() {
+            console.log(currentValueOfI); // 传入这个closure variable
+        }, 1000);
+    })(i);
+}
+```
+

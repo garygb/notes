@@ -145,4 +145,96 @@ fi
 
 ### 7. How to append output to the end of text file
 
- 
+```shell
+#! /bin/bash
+
+echo -e "Enter the name of the file: \c"
+read file_name
+
+if [[ -f $file_name ]]; then
+  if [[ -w $file_name ]]; then
+    echo "Type some text data. To quit press Ctrl+D."
+    # appending the data(使用 > 的话，是覆盖之前文件的内容)
+    cat >> $file_name
+  else
+    echo "File do not have permissions."
+  fi
+else
+  echo "$file_name not exists"
+fi
+```
+
+### 8. Logical 'AND' Operator
+
+```shell
+#! /bin/bash
+
+age=$1
+
+# 三种and的写法
+# if [[ $age -gt 18 ]] && [[ $age -lt 30 ]]; then
+# if [ $age -gt 18 -a $age -lt 30 ]; then
+if [[ $age -gt 18 && $age -lt 30 ]]; then # && 只能用在[[]]里面, -a 只能用在[]里面
+  echo "Valid age"
+else
+  echo "age not valid"
+fi
+```
+
+###9. Logical 'OR' Operator 
+
+```shell
+#! /bin/bash
+
+age=$1
+
+# 三种and的写法
+# if [[ $age -eq 18 ]] || [[ $age -eq 30 ]]; then
+# if [ $age -eq 18 -o $age -eq 30 ]; then
+if [[ $age -eq 18 || $age -eq 30 ]]; then # && 只能用在[[]]里面, -a 只能用在[]里面
+  echo "Valid age"
+else
+  echo "age not valid"
+fi
+```
+
+### 10. Perform arithmetic operations
+
+如果使用
+
+```shell
+echo 1+1
+```
+
+会输出：`1+1`。因为echo会默认将其之后的所有内容看做是一个string。
+
+使用以下的方式来做运算：
+
+```shell
+num1=10
+num2=20
+
+echo $((num1 + num2))
+```
+
+或者使用expr来完成（这样只需要单括号）：
+
+```shell
+# 注意在使用乘法的时候，需要使用\*来代表乘号
+echo $(expr $num1 + $num2)
+```
+
+### 11. Floating point math operations in bash
+
+```shell
+# bc是一个可以计算任何精度的计算器
+echo "25.5+1" | bc
+
+echo "scale=2; $num1 / $num2" | bc
+
+# -l 代表导入数学运算的库（这里的sqrt函数）
+echo "scale=3; sqrt($num1)" | bc -l
+
+echo "scale=10; 3^3" | bc
+```
+
