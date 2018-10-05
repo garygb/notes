@@ -1,4 +1,4 @@
-# JavaScruipt Objects and Prototypes In-depth
+# JavaScript Objects and Prototypes In-depth
 
 ##Unit 1 Creating Objects
 
