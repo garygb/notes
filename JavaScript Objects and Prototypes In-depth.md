@@ -130,7 +130,7 @@ obj.foo(); // Method #2 (Referring the function as a property of a object)
 
 new foo(); // Method #3 (In constructor mode)
 
-...        // Method #4
+foo.call(obj); // Method #4 (bind this to obj)
 ```
 
 在函数调用的时候，本来就有两个隐式的参数：`this`, `arguments`.
@@ -153,12 +153,12 @@ new foo(); // Method #3 (In constructor mode)
 
 
 
-|  No  |                        Method                        |      This Reference      |
-| :--: | :--------------------------------------------------: | :----------------------: |
-|  1   |        Calling standalone functions directly         |    The global object     |
-|  2   | Calling functions as property of an object reference |   The object reference   |
-|  3   |   Calling standalone functions using `new` keyword   | The newly created object |
-|  4   |                                                      |                          |
+|  No  |                        Method                        |               This Reference               |
+| :--: | :--------------------------------------------------: | :----------------------------------------: |
+|  1   |        Calling standalone functions directly         |             The global object              |
+|  2   | Calling functions as property of an object reference |            The object reference            |
+|  3   |   Calling standalone functions using `new` keyword   |          The newly created object          |
+|  4   |  Calling functions using `call` functional property  | The object passed into the `call` function |
 
 以下是一个使用this的实例：
 
@@ -181,5 +181,234 @@ function Bicycle(cadence, speed, gear, tirePressure) {
 // Calling the function in construtor mode
 var bicycle1 = new Bicycle(50, 20, 4, 25);
 bicycle1.inflateTires(); // tirePressure变为了28
+
+function Mechanic(name) {
+    this.name = name;
+}
+```
+
+我希望有另外一个人，他能选择某辆车，对它进行打气。
+
+```js
+var mike = new Mechanic("Mike");
+mike.inflateTires = bicycle.inflateTires;
+mike.inflateTires.call(bicycle1); // 修改this为bicycle1
+mike.inflateTires.call(bicycle2);
+```
+
+执行之后，查看`bicycle1`的tirePressure，可以发现它的值被改变了，但是与之前"自行车自行打气不同，现在是有某个人完成了打气的动作"。
+
+####Method #4
+
+一个函数对象里面有一个内置的属性`function call()`，使用它可以自己传入这个函数中起作用的`this`。如下：
+
+```js
+function foo() {
+    this.abc = def;
+}
+
+foo();
+foo.call(); // using the default `this` --> same as foo()
+foo.call({}); // call the function foo, and when you execute the function, it binds this reference on that function with the argument you pass into.
+```
+
+`call`函数可以有参数，当你传入一个对象，`call`函数会将你传入的参数绑定到`this`上。
+
+## Unit 3 Prototypes
+
+调用Bicycle方法创建对象的时候，都会产生一个新的function object，并将其引用赋给新创建的对象的inflateTires:
+
+```js
+function Bicycle(cadence, speed, gear, tirePressure) {
+    this.cadence = cadence;
+    this.speed = speed;
+    this.gear = gear;
+    this.tirePressure = tirePressure;
+    // 调用Bicycle方法创建对象的时候，都会产生一个新的function object，并将其引用赋给新创建的对象的inflateTires
+    this.inflateTires = function() {
+        this.tirePressure += 3;
+    }
+}
+
+var bicycle1 = new Bicycle(50, 20, 4, 25);
+var bicycle2 = new Bicycle(50, 20, 4, 25);
+```
+
+这与传统的基于类的对象模型有不同，**类中的方法只有一份**，所有的对象是类的实例，共享类的方法，于是对象只需要知道其具有哪些类方法就行了。
+
+差别如下图：
+
+![](/img/7.gif)
+
+![](/img/8.gif)
+
+### Introduction to prototype
+
+当在JavaScript中创建函数的时候，实际上是创建了两个object，一个是函数本身(通过`foo`访问)，一个是prototype(通过`foo.prototype`访问)。
+
+首先创建一个`foo`的函数：
+
+```js
+function foo() {}
+```
+
+通过查看`foo`的属性可以发现，里面有一个叫做`prototype`的属性，通过使用`foo.prototype`可以访问到这个对象。
+
+当我使用`new foo()`来返回一个对象的时候，这个对象里面有一个属性`__proto__`，指向了这个prototype object.
+
+![](img/9.gif)
+
+```js
+var newFooObj = new foo(); // 返回的是JS引擎创建的this对象（上图的obj）
+console.log(foo.prototype === newFooObj.__proto__); // 返回true，说明这两个对象其实是同一个
+```
+
+我们使用prototype的原因是，我们希望有一个centeral location, 我们可以定义一些相似的对象，如果有一些behavior是对象间相同的，那么就可以使用prototype里面的属性，而不需要每个对象都保留一份了。
+
+在调用对象的某个属性的时候，在使用对象的会先检查这个对象里面是否有这个属性，如果没有，则查找`__proto__`属性引用的对象里面是否有这个方法。只有在这两个地方都找不到对应的属性，才会返回`undefined`。
+
+``` js
+foo.prototype.hello = "This is a prototype object of foo";
+console.log(newFooObj.__proto__.hello); // return "This is a prototype object of foo"
+console.log(newFooObj.hello); // return "This is a prototype object of foo"
+```
+
+但当你想要向`newFooObj`对象里面加入`hello`属性的时候，当你在查看`ewfooObj.test`的时候，你获得的是这个对象自己的属性值，而不是prototype的属性值。
+
+```js
+newfooObj.test = "Test";
+newfooObj.test; // "Test"
+newfooObj.__proto__.test; // "This is a prototype object of foo"
+delete newfooObj.test;
+newfooObj.test; // "This is a prototype object of foo"
+```
+
+以下是一个例子：
+
+```js
+function Employee(name) {
+    this.name = name;
+}
+var emp1 = new Employee("Jim");
+var emp2 = new Employee("Pam");
+Employee.prototype.playPranks = function() {
+    console.log("Prank played!");
+}
+// No matter how many objects you created out of the employee, only one copy of the shared function
+emp1.playPranks();
+emp2.playPranks();
+```
+
+但是Prototype和传统的类还是有不同的地方，也就是传统的类无法在运行时动态地加入函数属性， 而prototype可以。
+
+### Object Links With Prototypes
+
+在对象中的`__prototype__`属性里，the double-undersocres are refered to as "dunder" as in "Dunder Mifflin". So, this property is called "dunder-proto".
+
+``` js
+emp1.__proto__.constructor;
+```
+
+当你不知道创建这个对象的构造函数是什么的时候，就可以通过`emp1.__proto__.constructor;`来查看。
+
+如果拿到一个对象，你想要创建一个相同的对象的时候，就可以使用`var emp3 = new emp1.__proto__.constructor();`这样就能拿到一个与emp1相同的对象emp3。
+
+注意实际上`constructor`只不过是一个属性，开发者完全可以改变这个属性的值，如下：
+
+```js
+emp1.__proto__.constructor = function bar() {}
+var b = new emp1.__proto__.constructor(); 
+console.log(b); // Object { }
+b.__proto__.constructor(); // function bar()
+```
+
+### The `Object` Function
+
+`Object`是一个全局的函数，我们可以使用：
+
+```js
+var obj1 = new Object();
+```
+
+来创建一个对象，这与：
+
+``` js
+var obj2 = {};
+```
+
+是等价的：
+
+```js
+console.log(obj1.__proto__ === obj2.__proto__); // true
+```
+
+![](/img/11.gif)
+
+
+
+```js
+console.log(emp1.__proto__.__proto__ === Object.prototype); // true
+Object.prototype.grandParentProp = "Grand parent";
+var emp1 = new Employee();
+console.log(emp1.grandProp); // return "Grand parent"(这是一步一步往上找上去的)
+```
+
+![](/img/12.gif)
+
+当你向`Object`函数对象的prototype里面添加了属性的话，你相当于向JavaScript里所有的对象里面都添加了这些属性。因为无论你使用new创建了什么对象，你这个对象都会指向一个构造函数的prototype对象，这个对象是JS引擎帮你创建的，而且这个对象里面一定有一个`__proto__`属性，而且这个属性指向了`Object`的prototype对象。
+
+注意：在Object这个对象的prototype里面，虽然也有一个`__proto__`的属性，但是这个属性指向的是null。
+
+![](/img/13.gif)
+
+所以，我们可以将`Object`看成是所有JS对象的grandfather.
+
+### Inheritance In JavaScript
+
+见如下代码：
+
+```js
+function Employee(name) {
+    this.name = name;
+}
+Employee.prototype.getName = function() {
+    return this.name;
+}
+var emp = new Employee("Gary"); 
+emp.getName(); // return "Gary"
+
+function Manager(name, department) {
+    this.name = name;
+    this.department = department;
+}
+Manager.prototype.getDep = function() {
+   	return this.department;
+}
+var manager = new Manager("Tom", "Math");
+manager.getDep(); // return "Tom"
+manager.getName(); // Error: manager.getName is not a function
+```
+
+最后一行出现了问题，由于我们没有在Manager的prototype里面定义getName方法，于是我们无法访问此方法，图示如下：
+
+![](/img/15.gif)
+
+此时，Manager的prototype里面的`__proto__`指向的是Object的Prototype，此时你只能在Object的prototype里面定义共有的方法。
+
+想要让Manager继承Employee，即让Manager共享Employee的方法，可以让`Manager`的prototype对象的`__proto__`属性指向Employee的prototype对象：
+
+```js
+console.log(Manager.prototype.__proto__ === Object.prototype); // true
+Manager.prototype.__proto__ = Employee.prototype;
+manager.getName(); // "Tom"
+```
+
+![](/img/14.gif)
+
+此时我在Employee的prototype里面定义新的函数，我也能在Manager的对象中访问这个函数：
+
+```js
+Employee.prototype.getSalary() { return 100; }
+manager.getSalary(); // 100
 ```
 
