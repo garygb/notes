@@ -247,3 +247,6 @@ console.log(aPerson);
 
 注意：TS不允许有多个构造函数存在。
 
+
+
+《tutorial 14》
