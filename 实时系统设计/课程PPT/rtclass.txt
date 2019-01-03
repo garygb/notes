@@ -1,0 +1,740 @@
+﻿----------------------- Page 1-----------------------
+
+Real-Time Systems  
+
+       Basic Concepts  
+                  
+        Prof. Jiyao An  
+
+----------------------- Page 2-----------------------
+
+    Typical RTS  
+
+湖南大学信息科学与工程学院  安吉尧                    2  
+
+----------------------- Page 3-----------------------
+
+                                 Example: Car  
+
+•    Mission: Reaching the destination safely.   
+       
+•    Controlled System: Car.  
+       
+•    Operating environment: Road conditions and other cars.  
+       
+•    Controlling System    
+     - Human driver: Sensors - Eyes and Ears of the driver.   
+     - Computer: Sensors - Cameras, Infrared receiver, and Laser telemeter.    
+  
+•    Controls: Accelerator, Steering wheel, Break-pedal.   
+       
+•    Actuators: Wheels, Engines, and Brakes.   
+
+                         湖南大学信息科学与工程学院  安吉尧                                                                          3  
+
+----------------------- Page 4-----------------------
+
+                 Definitions  
+
+• System: black box with n inputs and m  
+  outputs.  
+•  Response time: time between presentation  
+  of a set of inputs and the appearance of the  
+  corresponding outputs.  
+•  Events: Change of state causing a change of  
+  flow-of-control of a computer program.  
+
+            湖南大学信息科学与工程学院  安吉尧                        4  
+
+----------------------- Page 5-----------------------
+
+                     Definitions  
+
+•  synchronous: events occur at predictable times in  
+   the flow-of-control.  
+•  asynchronous: unpredictable (interrupts!).  
+•  state-based vs. event-based :   
+    –  plane wing is at an angle of 32º (state)  
+    –  plane wing moved up 4º (event)  
+
+•  deterministic system: for each possible state and  
+   each set of inputs, a unique set of outputs and next  
+   state of the system can be determined.  
+
+              湖南大学信息科学与工程学院  安吉尧                                    5  
+
+----------------------- Page 6-----------------------
+
+              More Definitions  
+
+• Utilization: measure of ‘useful ’ work a system  
+  performs.  
+• RTS: Correctness depends on results PLUS the  
+  time of delivery! Failure can have severe  
+  consequences.  
+• What are real-time systems? Planes, cars, washer,  
+  video player, thermostat, video games, weapons,...  
+• Related: QoS management, resource management,  
+  adaptive systems, embedded systems, pervasive  
+  and ubiquitous computing, ...   
+
+             湖南大学信息科学与工程学院  安吉尧                           6  
+
+----------------------- Page 7-----------------------
+
+                   Other Definitions  
+
+•  Oxford Dictionary of Computing: “Any system in which the  
+   time at which output is produced  is significant. This is usually because  
+   the input corresponds to some movement in the physical world, and the  
+   output has to relate to that same movement- The lag from input time to  
+   output time must be sufficiently small for acceptable timeliness”.  
+
+•  Burns and Wellings 2001: “Any information processing activity  
+   or system which has to respond to externally generated input stimuli  
+   within a finite and specified delay”.  
+
+•  Laplante (1993): “A real-time system is a system that must satisfy  
+   explicit (bounded) response-time constraints or risk severe  
+   consequences, including failures”.  
+
+                  湖南大学信息科学与工程学院  安吉尧                                               7  
+
+----------------------- Page 8-----------------------
+
+                 Hard versus Soft  
+
+•  HARD: miss a deadline and you’re in trouble! (planes,  
+   trains, factory control, nuclear facilities, ...)  
+•  SOFT: try to meet deadlines, but if not, system still works,  
+   although with degraded performance (multimedia,  
+   thermostat, ...)  
+•  FIRM: late results are worthless, but you are not in trouble  
+
+               湖南大学信息科学与工程学院  安吉尧                                         8  
+
+----------------------- Page 9-----------------------
+
+           Other categorization  
+
+•  Degrees of real-time (subjective!):  
+   – slightly: payroll systems (generate checks)  
+   – a little more: disk driver software  
+   – considerably more: credit-card authorizations,  
+     ATM withdrawals, airline booking  
+   – highly: combat system, stability control in  
+     airplanes, ABS    （Anti-locked Braking System ）  
+
+             湖南大学信息科学与工程学院  安吉尧                            9  
+
+----------------------- Page 10-----------------------
+
+             More Definitions  
+
+•  Reactive: system ‘reacts’ to environmental  
+  changes (temperature changes).  
+•  Embedded: specialized hardware and  
+  software, because GP-systems lack real- 
+  time capabilities.  
+
+            湖南大学信息科学与工程学院  安吉尧                       10  
+
+----------------------- Page 11-----------------------
+
+        Example: cruise control  
+
+•  Regulates speed of car by adjusting the  
+  throttle: driver sets a speed and car  
+  maintains it.  
+•  Measures speed through device connected  
+  to drive shaft.  
+•  Hard real-time: drive shaft revolution  
+  events.  
+• Soft real-time: driver inputs, throttle  
+  adjustments.  
+
+            湖南大学信息科学与工程学院  安吉尧                         11  
+
+----------------------- Page 12-----------------------
+
+              More examples  
+
+•  cars: engine control, ABS, drive-by-wire  
+•  planes: stability, jet engine, fly-by-wire  
+•  computers: peripherals, applications  
+•  military: weapons, satellites  
+•  domestic: microwave, thermostat,  
+  dishwasher  
+•  medical: pacemaker, medical monitoring  
+•  protection: intruder alarm, smoke/gas  
+  detection  
+            湖南大学信息科学与工程学院  安吉尧                         12  
+
+----------------------- Page 13-----------------------
+
+   Characteristics of RT Systems  
+
+•  size: small assembler code or large C++,  
+  Ada, ... code (example: 20 million lines of  
+  Ada for Intl. Space Station).  
+•  concurrent control of separate components  
+  (model this parallelism with parallelism in  
+  your program).  
+•  use of special purpose hardware and tools to  
+  program devices for this hardware in a  
+  reliable manner.  
+            湖南大学信息科学与工程学院  安吉尧                         13  
+
+----------------------- Page 14-----------------------
+
+      Common Misconceptions  
+
+•  “real fast” is real-time: a computer system  
+  may satisfy an application’s requirement,  
+  but no predictability (no real-time resource  
+  management).  
+•  hardware over-capacity is enough: again,  
+  without real-time resource management no  
+  appropriate balance of resource distribution.  
+
+            湖南大学信息科学与工程学院  安吉尧                         14  
+
+----------------------- Page 15-----------------------
+
+           real-time OS - wikipedia   
+
+https://en.wikipedia.org/wiki/Real-time_operating_system  
+
+                湖南大学信息科学与工程学院  安吉尧                             15  
+
+----------------------- Page 16-----------------------
+
+     real-time computing - wikipedia   
+
+https://en.wikipedia.org/wiki/Real-time_computing  
+
+                湖南大学信息科学与工程学院  安吉尧                             16  
+
+----------------------- Page 17-----------------------
+
+                             Predictability  
+
+•   The most common denominator that is expected from a real-time system is  
+
+    predictability .   
+      – The behavior of the real-time system must be predictable  
+         which means that with certain assumptions about workload  
+         and failures, it should be possible to show at “design  
+         time” that all the timing constraints of the application  
+         will be met.  
+
+      
+•   For static systems, 100% guarantees can be given at design time.   
+•   For dynamic systems, 100% guarantee cannot be given since the characteristics of tasks  
+    are not known a priori.   
+•   In dynamic systems, predictability means that once a task is admitted into the system, its  
+    guarantee should never be violated as long as the assumptions under which the task was  
+    admitted hold.   
+
+                      湖南大学信息科学与工程学院  安吉尧                                                             17  
+
+----------------------- Page 18-----------------------
+
+   Simple Valve Control  
+
+                      interface  
+
+ input flow  
+   reading  
+                                          flow   
+                                          meter  
+
+ processing  
+
+output valve  
+    angle                                 valve  
+
+      湖南大学信息科学与工程学院  安吉尧                                      18  
+
+----------------------- Page 19-----------------------
+
+                          Process Control  
+
+                                   operators console  
+
+                                    process control  
+                                       computer  
+
+chemicals  
+                                                                            finished  
+   and  
+materials               valve                            stirrer            products  
+                                      temperature  
+                                       transducer  
+
+                       湖南大学信息科学与工程学院  安吉尧                                              19  
+
+----------------------- Page 20-----------------------
+
+                         Manufacturing  
+
+                              operators console  
+
+                             production control  
+                                  computer  
+
+parts              machine       manipulators     conveyor           finished  
+                     tools                          belts            products  
+
+                       a production control system  
+                      湖南大学信息科学与工程学院  安吉尧                                     20  
+
+----------------------- Page 21-----------------------
+
+                     CCC  
+
+                     command  
+                        post  
+
+                   command and  
+                 control computer  
+
+            temperature, pressure, power, and so on  
+terminals  
+                       sensors/actuators  
+
+        a command and control system  
+       湖南大学信息科学与工程学院  安吉尧                                     21  
+
+----------------------- Page 22-----------------------
+
+          Industrial Embedded System  
+
+ real time             algorithms for               interface           engineering  
+   clock               digital control                                    system  
+
+                            data                     remote  
+                           logging                 monitoring  
+
+ database  
+
+                        data retrieval               display  
+                         and display                 devices  
+
+operator’s                operator  
+  console                 interface  
+
+                     湖南大学信息科学与工程学院  安吉尧                                          22  
+
+----------------------- Page 23-----------------------
+
+         Feedback Control System  
+
+r(t)       ∑        e(t)    controller   u(t)      plant       y(t)  
+
+                            (analog)  
+
+                湖南大学信息科学与工程学院  安吉尧                                   23  
+
+----------------------- Page 24-----------------------
+
+       Digital Feedback Control  
+
+r(t*)                  u(t*)  digital to      u(t)  
+       controller              analog                   plant  
+       (computer)             converter  
+
+                               sample                       y(t)  
+                   y(t*)         and  
+
+                                 hold  
+
+              湖南大学信息科学与工程学院  安吉尧                                          24  
+
+----------------------- Page 25-----------------------
+
+   And More Definitions: Safety  
+
+•  Safety (for environment and humans)  
+   – Burns & Wellings  
+     “Safety is the probability that conditions that  
+     can lead to mishaps do not occur whether or not  
+     the intended function is performed”.  
+
+             湖南大学信息科学与工程学院  安吉尧                          25  
+
+----------------------- Page 26-----------------------
+
+                      Reliability  
+
+•  Reliability  
+    –  Randell et al (1978)  
+      “a measure of the success with which the system  
+      conforms to some authoritative specification of its  
+      behavior“  
+•  Safety and reliability often used interchangeably.  
+•  Safety and reliability usually expressed in  
+   probabilities.  
+•  Other frequently used term: dependability.  
+
+               湖南大学信息科学与工程学院  安吉尧                                   26  
+
+----------------------- Page 27-----------------------
+
+             Example: Airplane  
+
+•  The only SAFE airplane is one that never  
+   takes off!  
+•  But it is not very reliable!  
+    
+
+              湖南大学信息科学与工程学院  安吉尧                               27  
+
+----------------------- Page 28-----------------------
+
+                  Operating Systems  
+
+      User Programs                                             User Program  
+
+          Operating                                          Including Operating  
+
+          Hardware                                                  Hardware  
+
+          System  
+                                                             System Components  
+
+Typical OS Configuration                                 Typical Embedded Configuration  
+
+                  湖南大学信息科学与工程学院  安吉尧                                                       28  
+
+----------------------- Page 29-----------------------
+
+              Real-Time OSs  
+
+•  Real-Time OS: VxWorks, QNX, LynxOS,  
+  eCos, DeltaOS, PSX, embOS, ...   
+•  GPOS: no support for real-time  
+  applications, focus on ‘fairness’.  
+•  BUT, people love GPOSs, e.g., Linux:   
+   – RTLinux (FSMLabs)  
+   – KURT (Kansas U.)  
+   – Linux/RT (TimeSys)  
+
+            湖南大学信息科学与工程学院  安吉尧                         29  
+
+----------------------- Page 30-----------------------
+
+                        RT OSs  
+
+•  Why?  
+   – Determinism / Predictability  
+       • Ability to meet deadlines  
+       • Traditional operating systems non-deterministic  
+
+•  Standards?  
+   – Real-Time POSIX 1003.1  
+       • Pre-emptive fixed-priority scheduling  
+       •  Synchronization methods  
+       • Task scheduling options  
+
+              湖南大学信息科学与工程学院  安吉尧                                  30  
+
+----------------------- Page 31-----------------------
+
+                              RT OSs  
+
+     •  Standards?  
+         – Real-Time POSIX 1003.1  
+             • Pre-emptive fixed-priority scheduling  
+             •  Synchronization methods  
+             • Task scheduling options  
+
+          
+
+https://en.wikipedia.org/wiki/POSIX  
+                    湖南大学信息科学与工程学院  安吉尧                                   31  
+
+----------------------- Page 32-----------------------
+
+                   Examples  
+
+Lynx OS  
+   – Microkernel Architecture  
+   – Provides scheduling, interrupt, and  
+     synchronization support  
+   – Real-Time POSIX support  
+   – Easy transition from Linux  
+
+            湖南大学信息科学与工程学院  安吉尧                           32  
+
+----------------------- Page 33-----------------------
+
+                      Examples  
+
+•  QNX Neutrino  
+    – Microkernel Architecture  
+       • Add / remove services without reboots  
+
+    – Primary method of communication is message  
+      passing between threads  
+    – Every process runs in its own protected address  
+      space  
+       • Protection of system against software failure  
+       •  “Self-healing” ?  
+
+              湖南大学信息科学与工程学院  安吉尧                                  33  
+
+----------------------- Page 34-----------------------
+
+                          Examples  
+
+VxWorks  
+    –  Monolithic Kernel  
+         • Reduced run-time overhead, but increased kernel size  
+           compared to Microkernel designs  
+
+    –  Supports Real-Time POSIX standards  
+    –  Common in industry  
+         • Mars missions  
+         • Honda ASIMO robot  
+         • Switches  
+         • MRI scanners  
+         • Car engine control systems  
+
+     
+
+                湖南大学信息科学与工程学院  安吉尧                                           34  
+
+----------------------- Page 35-----------------------
+
+                      Examples  
+
+•  MARS (Maintainable Real-Time System)  
+    – Time driven  
+        • No interrupts other than clock  
+
+    –  Support for fault-tolerant, redundant  
+      components  
+    –  Static scheduling of hard real-time tasks at  
+      predetermined times  
+        •  Offline scheduling  
+
+    – Primarily a research tool  
+
+     
+              湖南大学信息科学与工程学院  安吉尧                                   35  
+
+----------------------- Page 36-----------------------
+
+                          Examples  
+
+•  RTLinux  
+    –  “Workaround” on top of a generic O/S  
+         • Generic O/S – optimizes average case scenario  
+         • RTOS – need to consider WORST CASE scenarios to ensure  
+           deadlines are met  
+
+    –  Dual-kernel approach  
+         • Makes Linux a low-priority pre-emptable thread running on a  
+           separate RTLinux kernel  
+         • Tradeoff between determinism of pure real-time O/S and  
+           flexibility of conventional O/S  
+
+    –  Periodic tasks only  
+
+                 湖南大学信息科学与工程学院  安吉尧                                           36  
+
+----------------------- Page 37-----------------------
+
+           Example: Interrupts  
+
+•  Interrupt handling.  
+•  Concurrent interrupts: queuing? priorities?  
+•  Preemptive interrupts; enabling and  
+  disabling of interrupts.  
+
+            湖南大学信息科学与工程学院  安吉尧                       37  
+
+----------------------- Page 38-----------------------
+
+         Example: Concurrency  
+
+• Scheduling: priorities, time driven, event  
+  driven, task scheduling (RMS).  
+•  Processes, threads.  
+• Synchronization: test-and-set instructions,  
+  semaphores, deadlocks (circular waits), ...  
+
+            湖南大学信息科学与工程学院  安吉尧                        38  
+
+----------------------- Page 39-----------------------
+
+          Example: Scheduling  
+
+•  static: all scheduling decisions are determined  
+  before execution.  
+• dynamic: run-time decisions are used.  
+• periodic: processes that repeatedly execute  
+•  aperiodic: processes that are triggered by  
+   asynchronous events from the physical world.  
+•  sporadic: aperiodic processes w/ known minimum  
+  inter-arrival jitter between any two aperiodic  
+   events.  
+
+             湖南大学信息科学与工程学院  安吉尧                             39  
+
+----------------------- Page 40-----------------------
+
+  Preemptive vs. Non-preemptive  
+
+•   Preemptive Scheduling  
+     –  Task execution is preempted and resumed later.  
+     –   Preemption takes place to execute a higher priority task.   
+     –  Offers higher schedulability.   
+     –  Involves higher scheduling overhead due to context switching.  
+          
+
+•   Non-preemptive Scheduling    
+     –  Once a task is started executing, it completes its execution.   
+     –  Offers lower schedulability.   
+     –  Has less scheduling overhead because of less context switching.  
+
+                   湖南大学信息科学与工程学院  安吉尧                                                   40  
+
+----------------------- Page 41-----------------------
+
+       Rate Monotonic Priority  
+           Assignment (RMA)  
+
+•  each process has a unique priority based on  
+  its period; the shorter the period, the higher  
+  the priority.  
+•  RMA proven optimal in the sense that if  
+  any process set can be scheduled (using  
+  preemptive priority-based scheduling) with  
+  a fixed priority-based assignment scheme,  
+  then RMA can also schedule the process  
+  set.  
+            湖南大学信息科学与工程学院  安吉尧                           41  
+
+----------------------- Page 42-----------------------
+
+                        RMA  
+
+•  Each task has a period T and run-time C.  
+•  System utilization U=Σ(Ci/Ti). Measure for  
+   computational load on the CPU due to the task set.  
+•  There exists a maximum value of U, below which  
+   a task set is schedulable and above which it is not  
+   schedulable.  
+• RMA: Liu and Layland (1973):                    
+              Σ(Ci/Ti) <= n(21/n-1)  
+
+             湖南大学信息科学与工程学院  安吉尧                              42  
+
+----------------------- Page 43-----------------------
+
+               Real-Time Languages  
+
+•   Support for the management of time   
+     –   Language constructs for expressing timing constraint, keeping  
+         track of resource utilization.  
+          
+
+•   Schedulability analysis  
+     –   Aid compile-time schedulability check.   
+          
+
+•   Reusable real-time software modules  
+     –   Object-oriented methodology.   
+          
+
+•   Support for distributed programming and fault-tolerance  
+
+                    湖南大学信息科学与工程学院  安吉尧                                                         43  
+
+----------------------- Page 44-----------------------
+
+                    Real-Time Databases  
+
+•    Most conventional database systems are disk-based.  
+       
+•    They use transaction logging and two-phase locking protocols to ensure  
+     transaction atomicity and serializability.  
+       
+•    These characteristics preserve data integrity, but they also result in relatively  
+     slow and unpredictable response times.   
+       
+•    In a real-time database system, important issues include:  
+      –    transaction scheduling to meet deadlines.   
+      –    explicit semantics for specifying timing and other constraints.   
+      –    checking the database system’s ability of meeting transaction deadlines during  
+           application initialization.   
+
+       
+
+                         湖南大学信息科学与工程学院  安吉尧                                                                          44  
+
+----------------------- Page 45-----------------------
+
+              What’s Happening?  
+
+•  Ubiquitous Computing: make computers invisible,  
+   so embedded , so fitting, so natural, that we use it without  
+   even thinking about it.   
+
+        
+
+                湖南大学信息科学与工程学院  安吉尧                                      45  
+
+----------------------- Page 46-----------------------
+
+             What’s Happening?  
+
+•  Autonomous Computing:  
+    – self-configurable  
+    – self-adapting  
+    – optimizing  
+    – self-healing  
+
+•  Building real-time systems:  
+    – toolkits, validation tools, program composition  
+    – Boeing 777: $4Billion, >50% system  
+      integration & validation!  
+
+              湖南大学信息科学与工程学院  安吉尧                                  46  
+        
+
+----------------------- Page 47-----------------------
+
+              What’s Happening?  
+
+•  Soft real-time applications:  
+    –  mainstream applications  
+    –  notion of QoS  
+
+•  Multi-dimensional requirements:  
+    –  real-time, power, size, cost, security, fault tolerance  
+    –  conflicting resource requirements and system  
+      architecture  
+
+•  Unpredictable environments:  
+    – Internet (servers), real-time databases, ...  
+
+               湖南大学信息科学与工程学院  安吉尧                                     47  
+
+----------------------- Page 48-----------------------
+
+           What’s Happening?  
+
+•  Large-scale distributed mobile devices  
+   – connectivity  
+   – service location  
+   – scarce resources, resource sharing  
+   – power limitations  
+
+            湖南大学信息科学与工程学院  安吉尧                          48  
+
+----------------------- Page 49-----------------------
+
+• Questions/Issues?  
