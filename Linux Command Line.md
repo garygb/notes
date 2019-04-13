@@ -295,6 +295,7 @@
    ifconfig <interface name>   e.g. ifconfig eth0 查看特定的网卡信息
    ifconfig <interface name> down --> 断开连接
    ifconfig <interface name> up --> 建立连接
+
 42. tar
    代表 tape archive
    - 创建归档文件
@@ -309,6 +310,7 @@
      -z  --> 注意 -z flag必须跟在-c之后
      e.g. tar -czvf test.tar.gz test 创建压缩文件
      	tar -xzvf test.tar.gz 解压文件
+
 43. grep
    代表global regular expression print
    grep本身是case sensitive的，我们可以使用-i来让它变成case insensitive.
@@ -320,6 +322,7 @@
    	grep -n "options" * 查找这个文件夹中的所有文件
    	grep -v "options" file.txt --> invert match 找到所有不含options的行
    	grep -h 查看帮助
+
 44. netstat
    代表 network statistics，是一个用来显示network connections, routing tables, network interfaces。
    -a 列出所有当前的连接 
@@ -336,3 +339,35 @@
    > 当然还可进行多次操作，如下面的功能为先去除纯数字，再由sed将竖线(这里不是管道符号)替换为空格，再将结果取出来排序，再进行结果的选择显示，不明白可查看 排序和分页。
    > cat filename |grep -v '^[0-9]*$' | sed 's/|/ /g' |sort -nrk 8 -nrk 9 |tail -n +1 |head -n 10
 
+45. screen
+
+   在命令行中输入`screen`并按回车就可以进入一个新建的session。
+
+   可以在新创建出来的session里面输入命令。
+
+   从session中出来：按`Ctrl+a`并同时按下`d`。
+
+   使用`screen -S secondscreensession`来创建新的screen session。`-S`后面代表创建出来的session的名字。
+
+   查看所有的screen会话，使用`screen -ls`:
+
+   ```bash
+   There are screens on:
+           9683.secondscreensession        (04/13/2019 06:22:41 PM)        (Attached)
+           9627.pts-0.master       (04/13/2019 06:14:35 PM)        (Detached)
+   2 Sockets in /var/run/screen/S-guolab.
+   ```
+
+   (注意这里的`9683`和`9627`都是pid。可以使用`ps -ef | grep 9683`看到)
+
+   重新连接上screen：
+
+   `screen -r 9683`输入session的id回到session。
+
+   当只有一个session的时候，直接使用`screen -r `即可回到原来的session。
+
+   使用`screen -X -S  <session pid> quit` 这里的`-X`代表发送命令到那个session，`quit`代表退出这个session。
+
+   在一个session里面，使用`ctrl+a`和`k`组合就可以kill这个session。
+
+   
