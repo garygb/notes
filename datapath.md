@@ -1,1 +1,89 @@
-aa
+
+
+- 数据接收(ingress)：
+  - 数据包接收
+  - 过滤MAC地址（可以通过打开混杂模式而去掉）
+  - 检查FCS(Frame Check Sequence)，一种以太层的checksum，如果checksum不对会被直接丢弃，OS不感知
+  - 将数据包存在系统内存中（使用DMA）
+    ——地址由驱动程序先前分配好，然后告诉网卡这些内存的位置。网卡使用这些内存来保存收进来的数据包。
+  - 网卡触发中断，告诉CPU我已经把数据包准备好了
+  - CPU停下正在做的事情，并进行中断处理。由于我们不希望CPU在中断模式下呆太长时间，因为这样可能会打断CPU做一些非常重要的事情("top half")，所以在top half，我们只是让CPU做一些非常重要的事情，然后告诉网卡“shut up”，然后schedule "bottom half" latter.
+  - 当"bottom half"被调度到，NIC会告诉它之前数据被存储到哪里了，然后driver会分配一个sk_buff（这个结构体保存了数据包中的元数据），然后将元数据填写好：
+    - protocol（以太网类型, e.g. IP）
+    - receiving interface
+    - packet type, ...
+    并将MAC头指针设置好（skbuff里面mac），删除(pull)掉Ethernet header(通过移动指针)。并将skb传给协议栈。
+  - netif_receive_skb将数据从驱动中取出来。它一开始会看到data指针指向的是IP Header的起始位置，mac指针记录了mac头:
+    - 从以太头中移除vlan tag，将它放入skb数据结构中（有一些更智能的网卡通过硬件完成这件事）。
+    - 设置好网络层头（nh指针记录）。
+    - 将skb克隆给tap（tap是内核里面的探针，可以用来读取任何内核接收到的数据包，e.g. tcpdump make use of it）
+    - 调用tc ingress (packet can be redirected，数据包可能被tc拿走)
+    - 检查skb看是否是vlan tagged? 如果是vlan tagged的，而且内核中存在一个vlan设备，则将数据包重定向至对应的网卡，数据处理结束。
+    - 这个网卡是否有一个Master? Let it steal the packet("rx_handler") and processing ends.
+    - 调用L3协议的handler，这里以IPv4举例。
+  - ip_rcv是IPv4的接收函数：
+    - 丢弃MAC地址非本机的数据包（在这里丢弃的原因是因为bridge可能对各种封包都感兴趣）
+    - 移除(pull) IP头，
+    - 验证 IP header checksum
+    - 设置传输层头指针(h)。
+    - 调用netfilter（PRE_ROUTING）
+    - 如果数据包没被丢弃，则开始找路由（这个数据包是给我的还是给另外的主机？）
+    - 调用route input action (dst_input):
+      - forwarding 还是 local delivery？
+  - 如果是本机进行处理，则调用ip_local_deliver：
+    - 将分片的数据包组合起来
+    - 调用netfilter (查询LOCAL_IN netfilter chain)
+    - 调用L4层协议的handler, e.g. TCP
+  - TCP 接收函数(tcp_v4_rcv)：
+    - 移除(pull)TCP头
+    - 验证TCP checksum
+    - 查找这个封包对应哪个应用（哪个TCP socket），如果找不到，则将数据包丢弃
+    - 处理TCP状态机
+    - 将封包放入对应socket的接收队列里面
+    - 向应用发送信号，告诉它数据已经可用了(for poll)
+  - 在应用的角度，应用调用了socket read:
+    - 从对应的socket receive queue里面dequeue
+    - 将数据拷贝到应用提供的缓冲区中(可能拷贝多个packet)
+    - 释放skb
+
+- 数据发送(egress)
+  - 应用调用了socket write:
+    - socket用来发送数据的函数为sendmsg，e.g. TCP sendmsg
+  - tcp_sendmsg函数
+    - 分配创建sk_buff
+    - 将skb加入到socket写队列中
+    - 处理写队列
+  - tcp_write_xmit -> tcp_transmit_skb
+    - 根据socket中的信息构建TCP头(source port, dest port, ...)
+    - 将传输层头添加(push)至skb中(填写好)
+    - 设置好传输层指针h
+    - 调用L3层协议的handler, e.g. IPv4（这是通过socket指定的）
+  - 对于IP层的消息发送函数ip_queue_xmit:
+    - 找路由，用于确定要从哪个网卡发出（或者返回"hosts unreachable"）
+    - 根据socket中的信息和路由查询结果构建好IP头
+    - 将网络层头添加(push)至skb中
+    - 设置好网络层指针nh
+    - 调用Netfilter（LOCAL_OUT）
+    - 调用route output action (dst_output):
+      - 将数据发出/将数据包装到tunnel中/丢掉
+      - allow special routes
+  - IP发送函数(ip_output):
+    - 设置skb元数据，如 Protocol, network interface ..
+    - 调用netfilter (POST_ROUTING)
+    - 如果需要，进行IP分片（数据包大小超过链路层能接受的MTU）
+    - 进行neighbor lookup(L2层地址解析)
+    - 将链路层头添加(push)至skb中
+      - 通过调用neighbor output函数
+      - 或者使用缓存的L2头
+    - 调用L2层通用的发送函数
+  - 邻居output函数介绍(neigh_resolve_output)：
+    - 执行ARP状态机
+    - 如果没有ARP reply，则先将skb enqueue到一个暂存队列里面，等待ARP reply到达。当ARP reply到达后：
+      - 利用rely中的MAC地址构建L2 header
+      - 将header push到skb中
+      - 缓存这个header
+      - 将这个skb dequeue，继续进行后续处理
+  - L2层通用发送函数(dev_queue_xmit)：
+    - 设置链路层头（mac）
+    - 调用tc egress (packet can be redirected)
+    - 将数据包enqueue到qdisc中(queue discipline)
