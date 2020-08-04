@@ -1,4 +1,4 @@
-
+# Linux Packet Journey
 
 - 数据接收(ingress)：
   - 数据包接收
@@ -86,4 +86,84 @@
   - L2层通用发送函数(dev_queue_xmit)：
     - 设置链路层头（mac）
     - 调用tc egress (packet can be redirected)
-    - 将数据包enqueue到qdisc中(queue discipline)
+    - 将数据包enqueue到qdisc中(queue discipline), 掌握一个封包队列，在需要的时候将封包发送到网卡。
+  - qdisc使用__qdisc_run来运行(一直循环)：
+    - 如果发现网卡的buffer没满，则dequeue skb
+    - 提前处理skb（validate_xmit_skb），在软件层模拟硬件做不了的事情：
+      - 基于元数据添加一个VLAN tag
+      - 计算checksum（TCP checksum在这里计算）
+      - etc
+    - 调用网卡的发包函数
+  - 网卡发送函数（ndo_start_xmit）
+    - 硬件队列是否满了？
+      - 这不应该发生，如果发生了，那就让qdisc停止发送，然后让它重新将skb入队
+      - 理论上qdisc会及时停止数据发送，因此不会出现网卡硬件队列满的情况
+    - Last free place in hardware queue?
+      - stop the qdisc queue
+    - DMA映射封包数据，让网卡可以直接从内存中读数据
+    - 向skb元数据中添加一些detail信息
+    - 让NIC将数据发送出去
+  - 网卡
+    - 计算FCS
+    - 将数据包发送至网线中
+    - 触发"I'm done"中断
+  - 网卡驱动的中断处理函数
+    - 释放skb
+    - （由于释放了，queue中又有新的空间)，启动qdisc queue
+- 性能提升
+  - 智能校验和
+    - a sum of 16bit words (ones-complement)
+    - change of data with already computed checksum:
+      - just add the difference
+    - on ingress:
+      - "rx checksum offloading"
+      - NIC calculates checksum of the packet
+      - and gives us the  checksum
+      - or compares it with the packet's checksum
+      - we don't need to read the data!
+    - on egress:
+      - "tx checksum offloading"
+      - we tell the NIC
+        - from where to checksum the packet
+        - where to add the checksum to
+      - or the NIC understands the packet and calculates  the checksum
+      - 如果都不支持，则使用software checksum
+        - remember validate_xmit_skb
+  - 现代网卡支持多硬件队列
+    - on egress:
+      - hw queues are bound to qdisc queues
+      - queues can be stopped separately
+      - allows prioritization
+    - on ingress:
+      - packet for different sockets go to different queues
+      - allows CPU pinning(将不同的queue固定到不同的CPU核心上)
+  - "NAPI"
+    - interrrupt handling is costly
+    - storm of ingressing packets -> interrupt strom
+    - 当接收到第一个数据包的时候，关闭接收中断，然后调度一个worker，用来周期性地polling，每次去网卡驱动读一些数据包。如果发现没数据包可读了，再将rx interrupt打开。
+    - NAPI runs per hw queue
+  - GRO ( generic recceive offloading )
+    - 相同的数据包被进行相同地处理。
+    - 在同一条流中的数据包也是一样。
+    - 为什么不将他们组合成一个superpacket
+    - on NAPI receive, combine packets into a single skb
+      - remember, different streams goto different queues
+      - (Not really, we still need to check)
+    - keep enough information to split the packet back
+    - only single traversal through the network stack
+  - GSO (generic segmentation offloading)
+    - application sends more data than fits into a packet
+    - let's split the data into packets as late as possible
+    - the egress complement to GRO
+      - on write, create a GSO packet
+      - on forward path, GRO becomes GSO
+    - If the NIC supports segmentation(TSO), don't split at all!
+    - If it doesn't, split in software
+      - remember validate_xmit_skb?
+  - optimized packet memory layout (scatter-gatter)
+  - socket lookup before full decode
+  - packet hashes
+  - zero copy
+  - partial GSO
+  - ...
+
